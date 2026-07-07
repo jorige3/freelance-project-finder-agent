@@ -45,3 +45,5 @@ reports/*.json
 data/
 dist/
 
+freelance_projects.db
+database.db
