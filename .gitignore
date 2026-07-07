@@ -43,3 +43,5 @@ reports/*.json
 
 # Local data
 data/
+dist/
+
