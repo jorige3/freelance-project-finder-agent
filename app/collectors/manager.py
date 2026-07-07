@@ -4,6 +4,9 @@ from app.collectors.base import BaseCollector
 from app.collectors.mock_collector import MockCollector
 from app.collectors.remoteok import RemoteOKCollector
 from app.database.models import FreelanceProject
+from app.ranking.scorer import score_project
+from app.ranking.scorer import score_project
+from app.ranking.scorer import score_project
 
 
 class CollectorManager:
@@ -41,7 +44,7 @@ class CollectorManager:
                     budget=project.budget,
                     skills=project.skills,
                     difficulty=project.difficulty,
-                    score=project.score,
+                    score=score_project(project),
                 )
                 db.add(db_project)
                 inserted += 1

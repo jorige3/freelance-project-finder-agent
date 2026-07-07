@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from app.collectors.manager import CollectorManager
 from app.database.models import FreelanceProject
 from app.database.session import Base, SessionLocal, engine
+from app.collectors.base import CollectedProject
+from app.ranking.scorer import explain_score_project
 
 Base.metadata.create_all(bind=engine)
 
@@ -90,3 +92,37 @@ def list_projects(db: Session = Depends(get_db)):
 def collect_projects(db: Session = Depends(get_db)):
     manager = CollectorManager()
     return manager.collect_all(db)
+
+
+@app.get("/projects/{project_id}/score")
+def explain_project_score(project_id: int, db: Session = Depends(get_db)):
+    project = (
+        db.query(FreelanceProject)
+        .filter(FreelanceProject.id == project_id)
+        .first()
+    )
+
+    if not project:
+        return {"error": "Project not found"}
+
+    collected_project = CollectedProject(
+        title=project.title,
+        platform=project.platform,
+        url=project.url or "",
+        description=project.description or "",
+        budget=project.budget or "",
+        skills=project.skills or "",
+        difficulty=project.difficulty or "unknown",
+        score=project.score or 0,
+    )
+
+    result = explain_score_project(collected_project)
+
+    return {
+        "id": project.id,
+        "title": project.title,
+        "platform": project.platform,
+        "stored_score": project.score,
+        "calculated_score": result.score,
+        "reasons": result.reasons,
+    }
