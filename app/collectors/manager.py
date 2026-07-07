@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 
 from app.collectors.base import BaseCollector
 from app.collectors.mock_collector import MockCollector
+from app.collectors.remoteok import RemoteOKCollector
 from app.database.models import FreelanceProject
 
 
@@ -9,6 +10,7 @@ class CollectorManager:
     def __init__(self):
         self.collectors: list[BaseCollector] = [
             MockCollector(),
+            RemoteOKCollector(),
         ]
 
     def collect_all(self, db: Session) -> dict:
