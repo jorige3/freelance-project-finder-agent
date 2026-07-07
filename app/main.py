@@ -1,6 +1,7 @@
 from fastapi import Depends, FastAPI
 from sqlalchemy.orm import Session
 
+from app.collectors.manager import CollectorManager
 from app.database.models import FreelanceProject
 from app.database.session import Base, SessionLocal, engine
 
@@ -83,3 +84,9 @@ def list_projects(db: Session = Depends(get_db)):
         }
         for project in projects
     ]
+
+
+@app.post("/collect")
+def collect_projects(db: Session = Depends(get_db)):
+    manager = CollectorManager()
+    return manager.collect_all(db)
