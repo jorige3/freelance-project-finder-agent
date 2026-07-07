@@ -52,6 +52,9 @@ class RemoteOKCollector(BaseCollector):
                     skills=skills,
                     difficulty="unknown",
                     score=50,
+                    is_free_to_apply="yes",
+                    apply_cost="free",
+                    opportunity_type="remote_job",
                 )
             )
 
