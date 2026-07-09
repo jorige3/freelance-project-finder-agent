@@ -158,3 +158,18 @@ else:
 
         for reason in result["reasons"]:
             st.write(f"- {reason}")
+
+    st.subheader("Generate Proposal")
+
+    if st.button("Generate Proposal"):
+        result = requests.get(
+            f"{API_BASE_URL}/projects/{selected_id}/proposal",
+            timeout=10,
+        ).json()
+
+        st.write(f"### Proposal for: {result['title']}")
+        st.text_area(
+            "Copy this proposal",
+            value=result["proposal"],
+            height=300,
+        )
