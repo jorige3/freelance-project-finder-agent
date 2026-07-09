@@ -64,7 +64,7 @@ def explain_score_project(project: CollectedProject) -> ScoreResult:
     reasons = ["Base score +30"]
 
     for keyword, points in SKILL_WEIGHTS.items():
-        if keyword in text:
+        if keyword_found(keyword, text):
             score += points
             reasons.append(f"Matched skill '{keyword}' +{points}")
 
@@ -74,9 +74,9 @@ def explain_score_project(project: CollectedProject) -> ScoreResult:
             reasons.append(f"Beginner-friendly keyword '{keyword}' +5")
 
     for keyword, points in NEGATIVE_KEYWORDS.items():
-        if keyword in text:
+        if keyword_found(keyword, text):
             score += points
-            reasons.append(f"Penalty keyword '{keyword}' {points}")
+            reasons.append(f"Penalty keyword '{keyword}' {points:+d}")
 
     final_score = max(0, min(score, 100))
 
@@ -88,6 +88,7 @@ def explain_score_project(project: CollectedProject) -> ScoreResult:
 
 def score_project(project: CollectedProject) -> int:
     return explain_score_project(project).score
+
 
 def keyword_found(keyword: str, text: str) -> bool:
     pattern = r"\b" + re.escape(keyword) + r"\b"

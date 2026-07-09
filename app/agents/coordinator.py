@@ -27,8 +27,9 @@ class CoordinatorAgent:
         )
 
         free_projects = self.filter_agent.free_to_apply(projects)
+        relevant_projects = self.filter_agent.relevant_jobs(free_projects)
 
-        top_projects = free_projects[:limit]
+        top_projects = relevant_projects[:limit]
 
         return [
             {
