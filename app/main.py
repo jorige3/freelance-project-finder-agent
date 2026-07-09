@@ -6,6 +6,7 @@ from app.database.models import FreelanceProject
 from app.database.session import Base, SessionLocal, engine
 from app.collectors.base import CollectedProject
 from app.ranking.scorer import explain_score_project
+from app.proposal.generator import generate_proposal
 
 Base.metadata.create_all(bind=engine)
 
@@ -128,4 +129,25 @@ def explain_project_score(project_id: int, db: Session = Depends(get_db)):
         "stored_score": project.score,
         "calculated_score": result.score,
         "reasons": result.reasons,
+    }
+
+
+@app.get("/projects/{project_id}/proposal")
+def generate_project_proposal(project_id: int, db: Session = Depends(get_db)):
+    project = (
+        db.query(FreelanceProject)
+        .filter(FreelanceProject.id == project_id)
+        .first()
+    )
+
+    if not project:
+        return {"error": "Project not found"}
+
+    proposal = generate_proposal(project)
+
+    return {
+        "id": project.id,
+        "title": project.title,
+        "platform": project.platform,
+        "proposal": proposal,
     }
