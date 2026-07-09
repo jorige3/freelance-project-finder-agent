@@ -82,6 +82,49 @@ col4.metric("Platforms", platforms)
 
 st.divider()
 
+st.subheader("🏆 Today's Top 5 AI Picks")
+
+try:
+    top_picks_response = requests.get(
+        f"{API_BASE_URL}/agents/top-free-gigs",
+        timeout=10,
+    )
+    top_picks_response.raise_for_status()
+    top_picks = top_picks_response.json().get("projects", [])
+except Exception as exc:
+    st.warning(f"Could not load AI picks: {exc}")
+    top_picks = []
+
+if top_picks:
+    for index, project in enumerate(top_picks, start=1):
+        medal = ["🥇", "🥈", "🥉", "🏅", "🏅"][index - 1]
+
+        with st.container(border=True):
+            st.markdown(f"### {medal} {project['title']}")
+            st.write(f"**Platform:** {project['platform']}")
+            st.write(f"**Score:** {score_badge(project['score'])}")
+            st.write(f"**Budget:** {project.get('budget') or 'Not listed'}")
+            st.write(f"**Skills:** {project.get('skills') or 'Not listed'}")
+            st.write("🆓 **Free to apply**")
+
+            reasons = project.get("explanation", {}).get("reasons", [])
+            if reasons:
+                with st.expander("Why this is recommended"):
+                    for reason in reasons:
+                        st.write(f"- {reason}")
+
+            with st.expander("Generated Proposal"):
+                st.text_area(
+                    "Proposal",
+                    value=project.get("proposal", ""),
+                    height=220,
+                    key=f"proposal_{project['id']}",
+                )
+else:
+    st.info("No AI picks available yet. Try collecting projects first.")
+
+st.divider()
+
 collect_col, filter_col = st.columns([1, 3])
 with collect_col:
     if st.button("Collect Latest Jobs", use_container_width=True):

@@ -401,5 +401,5 @@ getTopGigs(3).then(projects => {
 
 For issues or questions, please:
 1. Check the main [README.md](README.md)
-2. Review project [issues](https://github.com/your-repo/issues)
+2. Review project [issues](https://github.com/jorige3/issues)
 3. Contact the maintainer
