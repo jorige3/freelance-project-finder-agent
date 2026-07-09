@@ -8,6 +8,10 @@ from app.collectors.base import CollectedProject
 from app.ranking.scorer import explain_score_project
 from app.proposal.generator import generate_proposal
 
+from app.agents.coordinator import CoordinatorAgent
+
+coordinator = CoordinatorAgent()
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -150,4 +154,17 @@ def generate_project_proposal(project_id: int, db: Session = Depends(get_db)):
         "title": project.title,
         "platform": project.platform,
         "proposal": proposal,
+    }
+
+@app.get("/agents/top-free-gigs")
+def top_free_gigs(
+    limit: int = 5,
+    db: Session = Depends(get_db),
+):
+    coordinator = CoordinatorAgent()
+
+    return {
+        "agent": coordinator.name,
+        "total": limit,
+        "projects": coordinator.get_top_free_gigs(db, limit),
     }
