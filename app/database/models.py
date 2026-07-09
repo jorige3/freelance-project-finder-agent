@@ -18,3 +18,6 @@ class FreelanceProject(Base):
     score = Column(Integer, default=0)
     status = Column(String(50), default="new")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    is_free_to_apply = Column(String(10), default="unknown")
+    apply_cost = Column(String(50), default="unknown")
+    opportunity_type = Column(String(50), default="remote_job")

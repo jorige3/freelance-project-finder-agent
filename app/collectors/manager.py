@@ -45,6 +45,9 @@ class CollectorManager:
                     skills=project.skills,
                     difficulty=project.difficulty,
                     score=score_project(project),
+                    is_free_to_apply=project.is_free_to_apply,
+                    apply_cost=project.apply_cost,
+                    opportunity_type=project.opportunity_type,
                 )
                 db.add(db_project)
                 inserted += 1

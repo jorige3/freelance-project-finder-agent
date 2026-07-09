@@ -83,6 +83,9 @@ def list_projects(db: Session = Depends(get_db)):
             "difficulty": project.difficulty,
             "score": project.score,
             "url": project.url,
+            "is_free_to_apply": project.is_free_to_apply,
+            "apply_cost": project.apply_cost,
+            "opportunity_type": project.opportunity_type,
         }
         for project in projects
     ]

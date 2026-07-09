@@ -15,6 +15,9 @@ class MockCollector(BaseCollector):
                 skills="Python, Automation, Files",
                 difficulty="easy",
                 score=80,
+                is_free_to_apply="yes",
+                apply_cost="free",
+                opportunity_type="freelance",
             ),
             CollectedProject(
                 title="Build FastAPI CRUD backend",
@@ -25,5 +28,8 @@ class MockCollector(BaseCollector):
                 skills="Python, FastAPI, SQLite",
                 difficulty="medium",
                 score=88,
+                is_free_to_apply="yes",
+                apply_cost="free",
+                opportunity_type="freelance",
             ),
         ]
