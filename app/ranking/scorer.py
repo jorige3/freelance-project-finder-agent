@@ -1,3 +1,5 @@
+import re
+
 from dataclasses import dataclass
 
 from app.collectors.base import CollectedProject
@@ -67,7 +69,7 @@ def explain_score_project(project: CollectedProject) -> ScoreResult:
             reasons.append(f"Matched skill '{keyword}' +{points}")
 
     for keyword in EASY_KEYWORDS:
-        if keyword in text:
+        if keyword_found(keyword, text):
             score += 5
             reasons.append(f"Beginner-friendly keyword '{keyword}' +5")
 
@@ -86,3 +88,7 @@ def explain_score_project(project: CollectedProject) -> ScoreResult:
 
 def score_project(project: CollectedProject) -> int:
     return explain_score_project(project).score
+
+def keyword_found(keyword: str, text: str) -> bool:
+    pattern = r"\b" + re.escape(keyword) + r"\b"
+    return re.search(pattern, text) is not None
