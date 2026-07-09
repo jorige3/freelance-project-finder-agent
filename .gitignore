@@ -47,3 +47,4 @@ dist/
 
 freelance_projects.db
 database.db
+*.code-workspace
