@@ -1,13 +1,14 @@
 # API Documentation
 
 ## Base URL
-```
+
+```text
 http://localhost:8010
 ```
 
 ## Overview
 
-This document describes all available endpoints for the Freelance Project Finder API.
+This document describes the current FastAPI endpoints exposed by the Freelance Project Finder agent.
 
 ---
 
@@ -15,10 +16,10 @@ This document describes all available endpoints for the Freelance Project Finder
 
 ### Health & Status
 
-#### GET `/`
-Health check and basic info endpoint.
+#### GET /
+Returns basic service metadata.
 
-**Response:**
+Response:
 ```json
 {
   "status": "running",
@@ -27,12 +28,10 @@ Health check and basic info endpoint.
 }
 ```
 
----
+#### GET /health
+Returns a simple health check response.
 
-#### GET `/health`
-Simple health check.
-
-**Response:**
+Response:
 ```json
 {
   "status": "healthy"
@@ -43,112 +42,139 @@ Simple health check.
 
 ### Projects
 
-#### POST `/projects/seed`
-Seed the database with sample projects for testing and demonstration.
+#### POST /projects/seed
+Seeds the database with sample projects.
 
-**Parameters:** None
-
-**Response:**
+Response:
 ```json
 {
-  "message": "Seeded X projects",
-  "projects_added": 5
+  "inserted": 2
 }
 ```
 
----
+#### GET /projects
+Lists stored projects sorted by score, highest first.
 
-#### GET `/projects`
-Retrieve all projects from the database.
-
-**Query Parameters:**
-- `skip` (int, default: 0) - Number of records to skip
-- `limit` (int, default: 100) - Number of records to return
-
-**Response:**
+Response:
 ```json
 [
   {
     "id": 1,
-    "title": "Build FastAPI CRUD backend",
-    "platform": "Mock",
-    "url": "https://example.com/project",
-    "description": "Need a simple FastAPI backend with SQLite database.",
-    "budget": "$250",
-    "skills": "Python, FastAPI, SQLite",
+    "title": "Build a Python automation script",
+    "platform": "Sample",
+    "budget": "$150",
+    "skills": "Python, Automation, CSV",
     "difficulty": "easy",
-    "score": 100,
-    "status": "new",
-    "created_at": "2026-07-09T00:00:00",
-    "is_free_to_apply": "yes",
-    "apply_cost": "free",
-    "opportunity_type": "remote_job"
+    "score": 85,
+    "url": "https://example.com/python-automation",
+    "is_free_to_apply": null,
+    "apply_cost": null,
+    "opportunity_type": null
   }
 ]
 ```
 
----
+#### POST /collect
+Triggers the collector manager to gather opportunities.
 
-#### POST `/collect`
-Collect fresh opportunities from configured collectors (RemoteOK, mock data, etc.).
-
-**Parameters:** None
-
-**Response:**
+Response:
 ```json
 {
   "status": "success",
-  "total_found": 27,
-  "inserted": 5,
-  "duplicates_skipped": 22
+  "total_found": 10,
+  "inserted": 3,
+  "duplicates_skipped": 7
 }
 ```
 
 ---
 
-### Scoring & Analysis
+### Scoring & Proposal
 
-#### GET `/projects/{project_id}/score`
-Get the detailed scoring explanation for a specific project.
+#### GET /projects/{project_id}/score
+Returns the stored score along with the dynamically calculated explanation.
 
-**Path Parameters:**
-- `project_id` (int, required) - The ID of the project
+Path parameters:
+- `project_id` (int, required)
 
-**Response:**
+Response:
 ```json
 {
   "id": 1,
-  "title": "Build FastAPI CRUD backend",
-  "platform": "Mock",
-  "stored_score": 100,
-  "calculated_score": 100,
+  "title": "Build a Python automation script",
+  "platform": "Sample",
+  "stored_score": 85,
+  "calculated_score": 85,
   "reasons": [
-    "Base score +30",
     "Matched skill 'python' +25",
-    "Matched skill 'fastapi' +25",
-    "Matched skill 'sqlite' +10",
-    "Matched skill 'backend' +15",
-    "Beginner-friendly keyword 'simple' +5",
-    "Score capped from 110 to 100"
+    "Matched skill 'automation' +20"
   ]
 }
 ```
 
----
+#### GET /projects/{project_id}/proposal
+Generates a proposal for a specific project and stores it in the database.
 
-#### GET `/projects/{project_id}/proposal`
-Generate a tailored proposal/cover letter for a specific project.
+Path parameters:
+- `project_id` (int, required)
 
-**Path Parameters:**
-- `project_id` (int, required) - The ID of the project
-
-**Response:**
+Response:
 ```json
 {
   "id": 1,
-  "title": "Build FastAPI CRUD backend",
-  "platform": "Mock",
-  "proposal": "Hello,\n\nI can help you with \"Build FastAPI CRUD backend\".\n\nI have hands-on experience with Python, FastAPI, SQLite. I can understand your requirement, build a clean working solution, and provide simple setup instructions so you can run it easily.\n\nMy approach:\n1. Review the requirement clearly.\n2. Build a small working version first.\n3. Test it properly.\n4. Improve it based on your feedback.\n5. Deliver clean code with basic documentation.\n\nI focus on practical, reliable, and easy-to-maintain solutions.\n\nThank you,\nKishore Kumar Jorige\n"
+  "title": "Build a Python automation script",
+  "platform": "Sample",
+  "proposal": "Hello, ...",
+  "proposal_status": "generated"
+}
+```
+
+---
+
+### Application Tracking
+
+#### GET /projects/{project_id}/application
+Returns the current application status for a project.
+
+Response:
+```json
+{
+  "id": 1,
+  "title": "Build a Python automation script",
+  "application_status": "saved",
+  "applied_at": null,
+  "notes": null
+}
+```
+
+#### PATCH /projects/{project_id}/application
+Updates the application workflow state for a project.
+
+Request body:
+```json
+{
+  "status": "applied",
+  "notes": "Submitted my proposal today."
+}
+```
+
+Allowed values:
+- `saved`
+- `proposal_ready`
+- `applied`
+- `interview`
+- `offer`
+- `completed`
+- `rejected`
+
+Response:
+```json
+{
+  "id": 1,
+  "title": "Build a Python automation script",
+  "application_status": "applied",
+  "applied_at": "2026-07-10T12:00:00",
+  "notes": "Submitted my proposal today."
 }
 ```
 
@@ -156,67 +182,18 @@ Generate a tailored proposal/cover letter for a specific project.
 
 ### Agent Endpoints
 
-#### GET `/agents/top-free-gigs`
-Get the top recommended free-to-apply tech opportunities based on intelligent filtering and scoring.
+#### GET /agents/top-free-gigs
+Returns the top recommended free-to-apply opportunities from the coordinator agent.
 
-**Query Parameters:**
-- `limit` (int, default: 5) - Number of opportunities to return
+Query parameters:
+- `limit` (int, default: 5)
 
-**Filters Applied:**
-1. Only free-to-apply opportunities
-2. Only tech/development-related jobs (using keyword matching)
-3. Minimum score threshold (50+)
-4. Sorted by score descending
-
-**Response:**
+Response:
 ```json
 {
   "agent": "CoordinatorAgent",
   "total": 5,
-  "projects": [
-    {
-      "id": 1,
-      "title": "Build FastAPI CRUD backend",
-      "platform": "Mock",
-      "score": 100,
-      "budget": "$250",
-      "skills": "Python, FastAPI, SQLite",
-      "url": "https://example.com/project",
-      "explanation": {
-        "score": 100,
-        "reasons": [
-          "Base score +30",
-          "Matched skill 'python' +25",
-          "Matched skill 'fastapi' +25",
-          "Matched skill 'sqlite' +10",
-          "Matched skill 'backend' +15",
-          "Beginner-friendly keyword 'simple' +5",
-          "Score capped from 110 to 100"
-        ]
-      },
-      "proposal": "Hello,\n\nI can help you with \"Build FastAPI CRUD backend\"...\n"
-    },
-    {
-      "id": 2,
-      "title": "Python script for file automation",
-      "platform": "Mock",
-      "score": 85,
-      "budget": "$100",
-      "skills": "Python, Automation, Files",
-      "url": "https://example.com/automation",
-      "explanation": {
-        "score": 85,
-        "reasons": [
-          "Base score +30",
-          "Matched skill 'python' +25",
-          "Matched skill 'automation' +20",
-          "Beginner-friendly keyword 'script' +5",
-          "Beginner-friendly keyword 'automation' +5"
-        ]
-      },
-      "proposal": "Hello,\n\nI can help you with \"Python script for file automation\"...\n"
-    }
-  ]
+  "projects": []
 }
 ```
 
@@ -225,39 +202,27 @@ Get the top recommended free-to-apply tech opportunities based on intelligent fi
 ## Error Responses
 
 ### 404 - Not Found
-When a resource is not found:
-
 ```json
 {
   "error": "Project not found"
 }
 ```
 
----
-
-### 500 - Internal Server Error
-When an unexpected error occurs:
-
+### 400 - Bad Request
 ```json
 {
-  "detail": "Internal server error message"
+  "error": "Invalid application status",
+  "allowed_statuses": [
+    "applied",
+    "completed",
+    "interview",
+    "offer",
+    "proposal_ready",
+    "rejected",
+    "saved"
+  ]
 }
 ```
-
----
-
-## Scoring System
-
-### Base Score
-- Every project starts with **30 points**
-
-### Skill Weights
-Matched skills from the project add points:
-
-| Skill | Points |
-|-------|--------|
-| Python | 25 |
-| FastAPI | 25 |
 | API | 15 |
 | Automation | 20 |
 | AI / Machine Learning | 20 |

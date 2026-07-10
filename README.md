@@ -2,7 +2,7 @@
 
 An intelligent AI-powered application that automatically collects, scores, and recommends **quality freelance and remote opportunities** with a focus on **free-to-apply developer gigs**. Built with smart filtering, explainable AI scoring, and actionable proposals.
 
-**Version:** 1.0.0  
+**Version:** 0.2.0  
 **Status:** Active Development
 
 ---
@@ -118,32 +118,23 @@ An intelligent AI-powered application that automatically collects, scores, and r
 
 ### Prerequisites
 - Python 3.11 or higher
-- pip or poetry
+- pip
 
 ### Clone & Setup
 
 ```bash
-# Clone repository
 git clone <repo-url>
 cd freelance-project-finder-agent
 
-# Create virtual environment
 python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+source .venv/bin/activate
 
-# Install dependencies
-pip install -r requirements.txt
-# OR
 pip install -e .
 ```
 
-### Install from pyproject.toml
+### Development Dependencies
 
 ```bash
-# Using pip with build-backend
-pip install .
-
-# For development
 pip install -e ".[dev]"
 ```
 
@@ -154,11 +145,10 @@ pip install -e ".[dev]"
 ### Start the API Server
 
 ```bash
-# Using uvicorn
-uvicorn app.main:app --port 8010
-
-# Server will be available at http://localhost:8010
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8010
 ```
+
+The API will be available at http://localhost:8010.
 
 ### Seed Database with Sample Data
 
@@ -175,7 +165,7 @@ curl -X POST http://localhost:8010/collect
 ### Get Top Free Gigs
 
 ```bash
-curl http://localhost:8010/agents/top-free-gigs?limit=5
+curl "http://localhost:8010/agents/top-free-gigs?limit=5"
 ```
 
 ### Launch Dashboard
@@ -190,63 +180,40 @@ streamlit run dashboard/app.py
 
 ### Health & Status
 
-```
+```http
 GET /
 GET /health
 ```
 
 ### Project Management
 
-```
+```http
 POST /projects/seed
-  - Seed database with sample projects
-  - Returns: { "message": "..." }
-
 GET /projects
-  - Get all projects
-  - Returns: [FreelanceProject, ...]
-
 POST /collect
-  - Collect fresh opportunities from collectors
-  - Returns: { "status": "success", "total_found": N, "inserted": N, "duplicates_skipped": N }
 ```
 
-### Score & Analysis
+### Score & Proposal
 
-```
+```http
 GET /projects/{project_id}/score
-  - Explain score for specific project
-  - Returns: { "id": int, "title": str, "stored_score": int, "calculated_score": int, "reasons": [str] }
-  
 GET /projects/{project_id}/proposal
-  - Generate proposal for specific project
-  - Returns: { "id": int, "title": str, "platform": str, "proposal": str }
+```
+
+### Application Tracking
+
+```http
+GET /projects/{project_id}/application
+PATCH /projects/{project_id}/application
 ```
 
 ### Agent Endpoints
 
-```
+```http
 GET /agents/top-free-gigs?limit=5
-  - Get top recommended free-to-apply tech opportunities
-  - Query Params: limit (default: 5)
-  - Returns: {
-      "agent": "CoordinatorAgent",
-      "total": int,
-      "projects": [
-        {
-          "id": int,
-          "title": str,
-          "platform": str,
-          "score": int,
-          "budget": str,
-          "skills": str,
-          "url": str,
-          "explanation": { "score": int, "reasons": [str] },
-          "proposal": str
-        }
-      ]
-    }
 ```
+
+The application supports the following application statuses: saved, proposal_ready, applied, interview, offer, completed, and rejected.
 
 ---
 
