@@ -216,3 +216,77 @@ else:
             value=result["proposal"],
             height=300,
         )
+    
+    st.subheader("📌 Application Tracker")
+
+    status_options = [
+        "saved",
+        "proposal_ready",
+        "applied",
+        "interview",
+        "offer",
+        "completed",
+        "rejected",
+    ]
+
+    tracker_project_id = st.selectbox(
+        "Select project to track",
+        filtered_df["id"].tolist(),
+        key="tracker_project_id",
+    )
+
+    try:
+        current_application = requests.get(
+            f"{API_BASE_URL}/projects/{tracker_project_id}/application",
+            timeout=10,
+        ).json()
+    except Exception as exc:
+        st.error(f"Could not load application status: {exc}")
+        current_application = {}
+
+    current_status = current_application.get("application_status", "saved")
+
+    status_index = (
+        status_options.index(current_status)
+        if current_status in status_options
+        else 0
+    )
+
+    selected_status = st.selectbox(
+        "Application status",
+        status_options,
+        index=status_index,
+    )
+
+    application_notes = st.text_area(
+        "Notes",
+        value=current_application.get("notes") or "",
+        placeholder="Example: Proposal sent. Waiting for client response.",
+        height=120,
+    )
+
+    if st.button("💾 Save Application Status"):
+        try:
+            response = requests.patch(
+                f"{API_BASE_URL}/projects/{tracker_project_id}/application",
+                json={
+                    "status": selected_status,
+                    "notes": application_notes,
+                },
+                timeout=10,
+            )
+            response.raise_for_status()
+            result = response.json()
+
+            st.success("Application status updated successfully.")
+            st.write(f"**Project:** {result['title']}")
+            st.write(f"**Status:** {result['application_status']}")
+
+            if result.get("applied_at"):
+                st.write(f"**Applied at:** {result['applied_at']}")
+
+            if result.get("notes"):
+                st.write(f"**Notes:** {result['notes']}")
+
+        except Exception as exc:
+            st.error(f"Could not update application status: {exc}")
