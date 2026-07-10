@@ -4,6 +4,9 @@ import streamlit as st
 
 API_BASE_URL = "http://localhost:8010"
 
+FREE_VALUES = {"yes", "true", "free", "free_to_apply"}
+PAID_VALUES = {"no", "false", "paid"}
+
 
 def score_badge(score):
     if pd.isna(score):
@@ -21,11 +24,15 @@ def score_badge(score):
     return f"🔴 {score_value}"
 
 
+def is_free_to_apply(value):
+    return str(value).strip().lower() in FREE_VALUES
+
+
 def free_to_apply_badge(value):
     normalized_value = str(value).strip().lower()
-    if normalized_value in {"yes", "true", "free", "free_to_apply"}:
+    if normalized_value in FREE_VALUES:
         return "🆓 Free to apply"
-    if normalized_value in {"no", "false", "paid"}:
+    if normalized_value in PAID_VALUES:
         return "💰 Paid"
     return "❓ Unknown"
 
@@ -60,9 +67,16 @@ for column, default in {
     "is_free_to_apply": "unknown",
     "apply_cost": "unknown",
     "opportunity_type": "unknown",
+    "difficulty": "unknown",
+    "budget": None,
+    "skills": None,
+    "url": None,
 }.items():
     if column not in df.columns:
         df[column] = default
+
+# Ensure score is numeric so comparisons don't blow up on messy data
+df["score"] = pd.to_numeric(df["score"], errors="coerce")
 
 # Create readable badge-style columns for the dashboard table.
 df["Score"] = df["score"].apply(score_badge)
@@ -71,13 +85,13 @@ df["Free"] = df["is_free_to_apply"].apply(free_to_apply_badge)
 col1, col2, col3, col4 = st.columns(4)
 
 total_projects = len(df)
-high_match = len(df[df["score"] >= 80])
-free_to_apply = len(df[df["is_free_to_apply"] == "yes"])
+high_match = int((df["score"] >= 80).sum())
+free_to_apply_count = int(df["is_free_to_apply"].apply(is_free_to_apply).sum())
 platforms = df["platform"].nunique()
 
 col1.metric("Total Projects", total_projects)
 col2.metric("High Match", high_match)
-col3.metric("Free to Apply", free_to_apply)
+col3.metric("Free to Apply", free_to_apply_count)
 col4.metric("Platforms", platforms)
 
 st.divider()
@@ -96,18 +110,19 @@ except Exception as exc:
     top_picks = []
 
 if top_picks:
-    for index, project in enumerate(top_picks, start=1):
-        medal = ["🥇", "🥈", "🥉", "🏅", "🏅"][index - 1]
+    medals = ["🥇", "🥈", "🥉", "🏅", "🏅"]
+    for index, project in enumerate(top_picks[:5], start=1):
+        medal = medals[index - 1]
 
         with st.container(border=True):
-            st.markdown(f"### {medal} {project['title']}")
-            st.write(f"**Platform:** {project['platform']}")
-            st.write(f"**Score:** {score_badge(project['score'])}")
+            st.markdown(f"### {medal} {project.get('title', 'Untitled')}")
+            st.write(f"**Platform:** {project.get('platform', 'Unknown')}")
+            st.write(f"**Score:** {score_badge(project.get('score'))}")
             st.write(f"**Budget:** {project.get('budget') or 'Not listed'}")
             st.write(f"**Skills:** {project.get('skills') or 'Not listed'}")
             st.write("🆓 **Free to apply**")
 
-            reasons = project.get("explanation", {}).get("reasons", [])
+            reasons = (project.get("explanation") or {}).get("reasons", [])
             if reasons:
                 with st.expander("Why this is recommended"):
                     for reason in reasons:
@@ -118,7 +133,7 @@ if top_picks:
                     "Proposal",
                     value=project.get("proposal", ""),
                     height=220,
-                    key=f"proposal_{project['id']}",
+                    key=f"proposal_{project.get('id')}",
                 )
 else:
     st.info("No AI picks available yet. Try collecting projects first.")
@@ -137,6 +152,7 @@ with collect_col:
             )
             projects = load_projects()
             df = pd.DataFrame(projects)
+            df["score"] = pd.to_numeric(df.get("score"), errors="coerce")
         except Exception as exc:
             st.error(f"Collection failed: {exc}")
 
@@ -152,15 +168,15 @@ if search:
     search_lower = search.lower()
     filtered_df = filtered_df[
         filtered_df["title"].fillna("").str.lower().str.contains(search_lower, na=False)
-        | filtered_df["skills"].fillna("").str.lower().str.contains(search_lower, na=False)
+        | filtered_df["skills"].fillna("").astype(str).str.lower().str.contains(search_lower, na=False)
         | filtered_df["platform"].fillna("").str.lower().str.contains(search_lower, na=False)
-        | filtered_df["opportunity_type"].fillna("").str.lower().str.contains(search_lower, na=False)
+        | filtered_df["opportunity_type"].fillna("").astype(str).str.lower().str.contains(search_lower, na=False)
     ]
 
 if show_only_free:
-    filtered_df = filtered_df[filtered_df["is_free_to_apply"] == "yes"]
+    filtered_df = filtered_df[filtered_df["is_free_to_apply"].apply(is_free_to_apply)]
 
-filtered_df = filtered_df[filtered_df["score"] >= min_score]
+filtered_df = filtered_df[filtered_df["score"].fillna(-1) >= min_score]
 
 # Use the helper-generated columns in the filtered view so the display stays consistent.
 filtered_df["Score"] = filtered_df["score"].apply(score_badge)
@@ -179,6 +195,11 @@ columns_to_show = [
     "url",
 ]
 
+# Guard against any columns still missing at display time
+for column in columns_to_show:
+    if column not in filtered_df.columns:
+        filtered_df[column] = None
+
 st.dataframe(
     filtered_df[columns_to_show],
     width="stretch",
@@ -194,29 +215,37 @@ else:
     selected_id = st.selectbox("Select project ID", project_ids)
 
     if st.button("Explain Score"):
-        result = requests.get(f"{API_BASE_URL}/projects/{selected_id}/score", timeout=10).json()
+        try:
+            result = requests.get(
+                f"{API_BASE_URL}/projects/{selected_id}/score", timeout=10
+            ).json()
 
-        st.write(f"### {result['title']}")
-        st.metric("Calculated Score", result["calculated_score"])
+            st.write(f"### {result.get('title', 'Untitled')}")
+            st.metric("Calculated Score", result.get("calculated_score", "N/A"))
 
-        for reason in result["reasons"]:
-            st.write(f"- {reason}")
+            for reason in result.get("reasons", []):
+                st.write(f"- {reason}")
+        except Exception as exc:
+            st.error(f"Could not fetch score explanation: {exc}")
 
     st.subheader("Generate Proposal")
 
     if st.button("Generate Proposal"):
-        result = requests.get(
-            f"{API_BASE_URL}/projects/{selected_id}/proposal",
-            timeout=10,
-        ).json()
+        try:
+            result = requests.get(
+                f"{API_BASE_URL}/projects/{selected_id}/proposal",
+                timeout=10,
+            ).json()
 
-        st.write(f"### Proposal for: {result['title']}")
-        st.text_area(
-            "Copy this proposal",
-            value=result["proposal"],
-            height=300,
-        )
-    
+            st.write(f"### Proposal for: {result.get('title', 'Untitled')}")
+            st.text_area(
+                "Copy this proposal",
+                value=result.get("proposal", ""),
+                height=300,
+            )
+        except Exception as exc:
+            st.error(f"Could not generate proposal: {exc}")
+
     st.subheader("📌 Application Tracker")
 
     status_options = [
@@ -279,8 +308,8 @@ else:
             result = response.json()
 
             st.success("Application status updated successfully.")
-            st.write(f"**Project:** {result['title']}")
-            st.write(f"**Status:** {result['application_status']}")
+            st.write(f"**Project:** {result.get('title', 'Untitled')}")
+            st.write(f"**Status:** {result.get('application_status', selected_status)}")
 
             if result.get("applied_at"):
                 st.write(f"**Applied at:** {result['applied_at']}")
