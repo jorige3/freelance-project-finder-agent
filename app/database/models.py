@@ -21,3 +21,6 @@ class FreelanceProject(Base):
     is_free_to_apply = Column(String(10), default="unknown")
     apply_cost = Column(String(50), default="unknown")
     opportunity_type = Column(String(50), default="remote_job")
+    application_status = Column(String, default="saved")
+    applied_at = Column(DateTime, nullable=True)
+    notes = Column(Text, nullable=True)

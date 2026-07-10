@@ -9,10 +9,14 @@ from app.ranking.scorer import explain_score_project
 from app.proposal.generator import generate_proposal
 
 from app.agents.coordinator import CoordinatorAgent
+from datetime import datetime
+
+from pydantic import BaseModel
 
 coordinator = CoordinatorAgent()
 
 Base.metadata.create_all(bind=engine)
+
 
 app = FastAPI(
     title="Freelance Project Finder AI Agent",
@@ -156,6 +160,8 @@ def generate_project_proposal(project_id: int, db: Session = Depends(get_db)):
         "proposal": proposal,
     }
 
+
+
 @app.get("/agents/top-free-gigs")
 def top_free_gigs(
     limit: int = 5,
@@ -167,4 +173,77 @@ def top_free_gigs(
         "agent": coordinator.name,
         "total": limit,
         "projects": coordinator.get_top_free_gigs(db, limit),
+    }
+    
+class ApplicationUpdate(BaseModel):
+    status: str
+    notes: str | None = None
+       
+VALID_APPLICATION_STATUSES = {
+    "saved",
+    "proposal_ready",
+    "applied",
+    "interview",
+    "offer",
+    "completed",
+    "rejected",
+}
+
+
+@app.patch("/projects/{project_id}/application")
+def update_application(
+    project_id: int,
+    payload: ApplicationUpdate,
+    db: Session = Depends(get_db),
+):
+    project = (
+        db.query(FreelanceProject)
+        .filter(FreelanceProject.id == project_id)
+        .first()
+    )
+
+    if not project:
+        return {"error": "Project not found"}
+
+    if payload.status not in VALID_APPLICATION_STATUSES:
+        return {
+            "error": "Invalid application status",
+            "allowed_statuses": sorted(VALID_APPLICATION_STATUSES),
+        }
+
+    project.application_status = payload.status
+    project.notes = payload.notes
+
+    if payload.status == "applied" and project.applied_at is None:
+        project.applied_at = datetime.utcnow()
+
+    db.commit()
+    db.refresh(project)
+
+    return {
+        "id": project.id,
+        "title": project.title,
+        "application_status": project.application_status,
+        "applied_at": project.applied_at,
+        "notes": project.notes,
+    }
+
+
+@app.get("/projects/{project_id}/application")
+def get_application(project_id: int, db: Session = Depends(get_db)):
+    project = (
+        db.query(FreelanceProject)
+        .filter(FreelanceProject.id == project_id)
+        .first()
+    )
+
+    if not project:
+        return {"error": "Project not found"}
+
+    return {
+        "id": project.id,
+        "title": project.title,
+        "application_status": project.application_status,
+        "applied_at": project.applied_at,
+        "notes": project.notes,
     }
