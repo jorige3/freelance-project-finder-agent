@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 
 from app.collectors.manager import CollectorManager
@@ -141,23 +141,29 @@ def explain_project_score(project_id: int, db: Session = Depends(get_db)):
 
 
 @app.get("/projects/{project_id}/proposal")
-def generate_project_proposal(project_id: int, db: Session = Depends(get_db)):
+def get_proposal(project_id: int, db: Session = Depends(get_db)):
     project = (
         db.query(FreelanceProject)
         .filter(FreelanceProject.id == project_id)
         .first()
     )
-
     if not project:
-        return {"error": "Project not found"}
+        raise HTTPException(status_code=404, detail="Project not found")
 
-    proposal = generate_proposal(project)
+    proposal_text = generate_proposal(project)
+
+    project.proposal_text = proposal_text
+    project.proposal_status = "generated"
+    project.proposal_generated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(project)
 
     return {
         "id": project.id,
         "title": project.title,
         "platform": project.platform,
-        "proposal": proposal,
+        "proposal": proposal_text,
+        "proposal_status": project.proposal_status,
     }
 
 
