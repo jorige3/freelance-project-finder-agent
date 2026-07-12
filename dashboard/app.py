@@ -1,8 +1,9 @@
+import os
 import pandas as pd
 import requests
 import streamlit as st
 
-API_BASE_URL = "http://localhost:8010"
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8010")
 
 FREE_VALUES = {"yes", "true", "free", "free_to_apply"}
 PAID_VALUES = {"no", "false", "paid"}
