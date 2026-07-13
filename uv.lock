@@ -278,7 +278,7 @@ wheels = [
 
 [[package]]
 name = "freelance-project-finder-agent"
-version = "0.5.0"
+version = "0.8.0"
 source = { virtual = "." }
 dependencies = [
     { name = "beautifulsoup4" },
