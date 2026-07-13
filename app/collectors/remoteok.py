@@ -1,6 +1,7 @@
 import httpx
 
 from app.collectors.base import BaseCollector, CollectedProject
+from app.collectors.opportunity_type import detect_opportunity_type
 
 
 class RemoteOKCollector(BaseCollector):
@@ -54,7 +55,7 @@ class RemoteOKCollector(BaseCollector):
                     score=50,
                     is_free_to_apply="yes",
                     apply_cost="free",
-                    opportunity_type="remote_job",
+                    opportunity_type=detect_opportunity_type(title, description),
                 )
             )
 
