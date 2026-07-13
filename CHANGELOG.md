@@ -6,8 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [0.8.0] - Unreleased
 
-## [0.5.0] - 2026-07-10
+### Added
+- MIT license.
+- Environment-variable documentation.
+- Root CLI launcher for the API and Streamlit dashboard.
+
+### Changed
+- Centralized ORM-to-DTO conversion with `CollectedProject.from_orm()`.
+- Improved README, API, and architecture documentation.
+- Restored the verified GitHub Actions workflow using `checkout@v5` and `setup-uv@v6`.
+
+### Fixed
+- Broken API documentation formatting.
+- Inconsistent project version metadata.
+
 
 ### Initial Release
 

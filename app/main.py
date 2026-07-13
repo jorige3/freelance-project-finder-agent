@@ -20,7 +20,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Freelance Project Finder AI Agent",
-    version="0.5.0",
+    version="0.8.0",
     description="AI agent to collect, rank, and recommend freelance projects.",
 )
 
@@ -38,7 +38,7 @@ def root():
     return {
         "status": "running",
         "project": "Freelance Project Finder AI Agent",
-        "version": "0.5.0",
+        "version": "0.8.0",
     }
 
 
