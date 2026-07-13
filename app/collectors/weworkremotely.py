@@ -1,6 +1,7 @@
 import feedparser
 
 from app.collectors.base import BaseCollector, CollectedProject
+from app.collectors.opportunity_type import detect_opportunity_type
 
 
 class WeWorkRemotelyCollector(BaseCollector):
@@ -33,7 +34,7 @@ class WeWorkRemotelyCollector(BaseCollector):
                     score=50,
                     is_free_to_apply="yes",
                     apply_cost="free",
-                    opportunity_type="remote_job",
+                    opportunity_type=detect_opportunity_type(title, description),
                 )
             )
 

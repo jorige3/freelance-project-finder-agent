@@ -48,6 +48,7 @@ COPY --chown=appuser:appuser --from=builder /app/.venv /app/.venv
 # Copy source code
 COPY --chown=appuser:appuser app/ ./app/
 COPY --chown=appuser:appuser dashboard/ ./dashboard/
+COPY --chown=appuser:appuser scripts/ ./scripts/
 COPY --chown=appuser:appuser pyproject.toml README.md ./
 
 # Create data directory for database file persistence and set ownership
