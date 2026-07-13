@@ -5,7 +5,7 @@ from app.collectors.manager import CollectorManager
 from app.database.models import FreelanceProject
 from app.database.session import Base, SessionLocal, engine
 from app.collectors.base import CollectedProject
-from app.ranking.scorer import explain_score_project
+from app.ranking.scorer import explain_score_project, score_db_project
 from app.proposal.generator import generate_proposal
 
 from app.agents.coordinator import CoordinatorAgent
@@ -80,7 +80,11 @@ def seed_projects(db: Session = Depends(get_db)):
 
 @app.get("/projects")
 def list_projects(db: Session = Depends(get_db)):
-    projects = db.query(FreelanceProject).order_by(FreelanceProject.score.desc()).all()
+    projects = db.query(FreelanceProject).all()
+    for project in projects:
+        project.score = score_db_project(project)
+    
+    projects.sort(key=lambda p: p.score, reverse=True)
 
     return [
         {
@@ -126,6 +130,9 @@ def explain_project_score(project_id: int, db: Session = Depends(get_db)):
         skills=project.skills or "",
         difficulty=project.difficulty or "unknown",
         score=project.score or 0,
+        is_free_to_apply=project.is_free_to_apply or "unknown",
+        apply_cost=project.apply_cost or "unknown",
+        opportunity_type=project.opportunity_type or "remote_job",
     )
 
     result = explain_score_project(collected_project)

@@ -5,6 +5,7 @@ from app.agents.filter_agent import FilterAgent
 from app.agents.proposal_agent import ProposalAgent
 from app.agents.ranking_agent import RankingAgent
 from app.database.models import FreelanceProject
+from app.ranking.scorer import score_db_project
 
 
 class CoordinatorAgent:
@@ -20,15 +21,14 @@ class CoordinatorAgent:
         return self.collector_agent.run(db)
 
     def get_top_free_gigs(self, db: Session, limit: int = 5) -> list[dict]:
-        projects = (
-            db.query(FreelanceProject)
-            .order_by(FreelanceProject.score.desc())
-            .all()
-        )
+        projects = db.query(FreelanceProject).all()
+        for project in projects:
+            project.score = score_db_project(project)
 
         free_projects = self.filter_agent.free_to_apply(projects)
         relevant_projects = self.filter_agent.relevant_jobs(free_projects)
 
+        relevant_projects.sort(key=lambda p: p.score, reverse=True)
         top_projects = relevant_projects[:limit]
 
         return [
