@@ -75,18 +75,6 @@ def score_project(project: CollectedProject) -> int:
 
 
 def score_db_project(project) -> int:
-    collected = CollectedProject(
-        title=project.title,
-        platform=project.platform,
-        url=project.url or "",
-        description=project.description or "",
-        budget=project.budget or "",
-        skills=project.skills or "",
-        difficulty=project.difficulty or "unknown",
-        score=0,
-        is_free_to_apply=getattr(project, "is_free_to_apply", "unknown") or "unknown",
-        apply_cost=getattr(project, "apply_cost", "unknown") or "unknown",
-        opportunity_type=getattr(project, "opportunity_type", "remote_job") or "remote_job",
-    )
+    collected = CollectedProject.from_orm(project)
     return score_project(collected)
 

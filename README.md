@@ -123,7 +123,7 @@ An intelligent AI-powered application that automatically collects, scores, and r
 ### Clone & Setup
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/jorige3/freelance-project-finder-agent.git
 cd freelance-project-finder-agent
 
 python3 -m venv .venv
@@ -266,6 +266,20 @@ freelance-project-finder-agent/
 
 ## ⚙️ Configuration
 
+### Environment Variables
+
+The application can be configured by defining environment variables. You can optionally place them in a `.env` file in the project root:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `API_BASE_URL` | Base URL of the FastAPI backend API | `http://localhost:8010` |
+| `DATABASE_URL` | SQLAlchemy SQLite database connection string | `sqlite:///./freelance_projects.db` |
+| `OLLAMA_BASE_URL` | Base endpoint URL of the local Ollama server | `http://localhost:11434` |
+| `OLLAMA_PROPOSAL_MODEL` | Ollama model utilized for AI proposals | `qwen3:1.7b` |
+| `OLLAMA_TIMEOUT` | Timeout limit (in seconds) for proposal generation | `120` |
+
+---
+
 ### Skill Weights (Scoring)
 
 Edit `app/ranking/scorer.py` to adjust scoring:
@@ -388,9 +402,7 @@ Contributions are welcome! Areas for improvement:
 ## 👨‍💻 Author
 
 **Kishore Kumar Jorige**  
-- Portfolio: [Your Portfolio]
-- GitHub: [@username]
-- LinkedIn: [Your LinkedIn]
+- GitHub: [@jorige3](https://github.com/jorige3)
 
 Special thanks to **OpenAI's ChatGPT** for assistance throughout design, implementation, debugging, and documentation.
 

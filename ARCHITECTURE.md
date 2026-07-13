@@ -99,16 +99,23 @@ Agents are autonomous components that perform specific tasks in the workflow.
 
 ```python
 def get_top_free_gigs(self, db: Session, limit: int = 5):
-    # Step 1: Get all projects sorted by score
-    projects = db.query(FreelanceProject).order_by(...).all()
+    # Step 1: Get all projects
+    projects = db.query(FreelanceProject).all()
     
-    # Step 2: Apply free-to-apply filter
+    # Step 2: Compute project scores dynamically
+    for project in projects:
+        project.score = score_db_project(project)
+    
+    # Step 3: Apply free-to-apply filter
     free_projects = self.filter_agent.free_to_apply(projects)
     
-    # Step 3: Apply tech relevance filter
+    # Step 4: Apply tech relevance filter
     relevant_projects = self.filter_agent.relevant_jobs(free_projects)
     
-    # Step 4-5: Score and generate proposals
+    # Step 5: Sort filtered projects by score DESC
+    relevant_projects.sort(key=lambda p: p.score, reverse=True)
+    
+    # Step 6: Return top projects
     return [self._format_project(p) for p in relevant_projects[:limit]]
 ```
 
@@ -320,13 +327,17 @@ FastAPI Router
     ↓
 CoordinatorAgent.get_top_free_gigs()
     ↓
-1. Query all projects sorted by score DESC
+1. Query all projects
     ↓
-2. FilterAgent.free_to_apply() → Filter where is_free_to_apply == "yes"
+2. Calculate scores dynamically for all retrieved projects
     ↓
-3. FilterAgent.relevant_jobs() → Filter tech jobs with score >= 50
+3. FilterAgent.free_to_apply() → Filter where is_free_to_apply == "yes"
     ↓
-4. Take first 5 projects
+4. FilterAgent.relevant_jobs() → Filter tech jobs with dynamic score >= 50
+    ↓
+5. Sort filtered projects by dynamic score DESC
+    ↓
+6. Take first 5 projects
     ↓
 5. For each project:
     - RankingAgent.explain() → Get score explanation

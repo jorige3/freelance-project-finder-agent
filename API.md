@@ -223,6 +223,19 @@ Response:
   ]
 }
 ```
+
+---
+
+## Scoring Rules & Parameters
+
+The scoring engine calculates project match relevance on a scale of 0 to 100 based on the following weights and keywords:
+
+### Skill Weights
+
+| Skill / Tag | Points |
+|-------------|--------|
+| Python | 25 |
+| FastAPI | 25 |
 | API | 15 |
 | Automation | 20 |
 | AI / Machine Learning | 20 |
@@ -233,6 +246,7 @@ Response:
 | SQLite | 10 |
 | Backend | 15 |
 | Cloud / Azure / AWS | 10 |
+
 
 ### Ease Keywords
 Projects marked as "easy" get bonus points:

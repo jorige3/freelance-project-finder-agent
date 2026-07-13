@@ -7,19 +7,7 @@ class RankingAgent:
     name = "RankingAgent"
 
     def explain(self, project: FreelanceProject) -> dict:
-        collected_project = CollectedProject(
-            title=project.title,
-            platform=project.platform,
-            url=project.url or "",
-            description=project.description or "",
-            budget=project.budget or "",
-            skills=project.skills or "",
-            difficulty=project.difficulty or "unknown",
-            score=project.score or 0,
-            is_free_to_apply=project.is_free_to_apply or "unknown",
-            apply_cost=project.apply_cost or "unknown",
-            opportunity_type=project.opportunity_type or "unknown",
-        )
+        collected_project = CollectedProject.from_orm(project)
 
         result = explain_score_project(collected_project)
 

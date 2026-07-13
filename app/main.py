@@ -20,7 +20,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Freelance Project Finder AI Agent",
-    version="0.2.0",
+    version="0.5.0",
     description="AI agent to collect, rank, and recommend freelance projects.",
 )
 
@@ -38,7 +38,7 @@ def root():
     return {
         "status": "running",
         "project": "Freelance Project Finder AI Agent",
-        "version": "0.2.0",
+        "version": "0.5.0",
     }
 
 
@@ -121,19 +121,7 @@ def explain_project_score(project_id: int, db: Session = Depends(get_db)):
     if not project:
         return {"error": "Project not found"}
 
-    collected_project = CollectedProject(
-        title=project.title,
-        platform=project.platform,
-        url=project.url or "",
-        description=project.description or "",
-        budget=project.budget or "",
-        skills=project.skills or "",
-        difficulty=project.difficulty or "unknown",
-        score=project.score or 0,
-        is_free_to_apply=project.is_free_to_apply or "unknown",
-        apply_cost=project.apply_cost or "unknown",
-        opportunity_type=project.opportunity_type or "remote_job",
-    )
+    collected_project = CollectedProject.from_orm(project)
 
     result = explain_score_project(collected_project)
 
