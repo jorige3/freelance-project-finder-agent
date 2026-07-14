@@ -4,7 +4,7 @@ from app.collectors.base import BaseCollector, CollectedProject
 class MockCollector(BaseCollector):
     name = "Mock"
 
-    def collect(self) -> list[CollectedProject]:
+    async def collect(self) -> list[CollectedProject]:
         return [
             CollectedProject(
                 title="Python script for file automation",

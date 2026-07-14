@@ -36,6 +36,6 @@ class BaseCollector(ABC):
     name: str
 
     @abstractmethod
-    def collect(self) -> list[CollectedProject]:
-        """Collect freelance projects from one source."""
+    async def collect(self) -> list[CollectedProject]:
+        """Collect freelance projects from one source asynchronously."""
         raise NotImplementedError

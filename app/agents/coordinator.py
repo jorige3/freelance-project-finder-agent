@@ -17,8 +17,8 @@ class CoordinatorAgent:
         self.ranking_agent = RankingAgent()
         self.proposal_agent = ProposalAgent()
 
-    def collect(self, db: Session) -> dict:
-        return self.collector_agent.run(db)
+    async def collect(self, db: Session) -> dict:
+        return await self.collector_agent.run(db)
 
     def get_top_free_gigs(self, db: Session, limit: int = 5) -> list[dict]:
         projects = db.query(FreelanceProject).all()
@@ -30,6 +30,12 @@ class CoordinatorAgent:
 
         relevant_projects.sort(key=lambda p: p.score, reverse=True)
         top_projects = relevant_projects[:limit]
+
+        # Load all columns eagerly, expunge from session, and close session early
+        for project in top_projects:
+            _ = (project.title, project.platform, project.score, project.budget, project.skills, project.url)
+            db.expunge(project)
+        db.close()
 
         return [
             {

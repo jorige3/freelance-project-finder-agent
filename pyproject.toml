@@ -27,7 +27,7 @@ dependencies = [
 # This project contains the 'app' package (app/__init__.py) which must be discoverable.
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["app*"]
+include = ["app*", "dashboard*"]
 
 [project.optional-dependencies]
 dev = [

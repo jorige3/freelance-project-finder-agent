@@ -496,7 +496,7 @@ def top_remote_jobs(db: Session = Depends(get_db)):
 ## Performance Considerations
 
 ### Current Optimizations
-1. **Database Indexing**: Score column indexed for fast sorting
+1. **Database Indexing**: Unique index on URL column for fast deduplication (planned for v0.9.0)
 2. **Query Filtering**: Large filters applied at database level
 3. **Lazy Loading**: Only load projects when needed
 

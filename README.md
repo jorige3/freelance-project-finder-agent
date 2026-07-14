@@ -4,7 +4,7 @@
 
 An intelligent AI-powered application that automatically collects, scores, and recommends **quality freelance and remote opportunities** with a focus on **free-to-apply developer gigs**. Built with smart filtering, explainable AI scoring, and actionable proposals.
 
-**Version:** 0.2.0  
+**Version:** 0.8.0  
 **Status:** Active Development
 
 ---
@@ -30,7 +30,7 @@ An intelligent AI-powered application that automatically collects, scores, and r
 
 **Freelance Project Finder** is an AI agent designed to help developers efficiently discover relevant freelance opportunities. Instead of manually browsing job boards, this system:
 
-1. **Collects** opportunities from multiple sources (RemoteOK, mock collectors)
+1. **Collects** opportunities from multiple sources (RemoteOK, Remotive, WeWorkRemotely, and mock collectors)
 2. **Intelligently Scores** projects based on skill relevance, difficulty level, and job type
 3. **Filters** for tech-relevant roles and free-to-apply positions
 4. **Generates** personalized proposals automatically
@@ -42,8 +42,8 @@ An intelligent AI-powered application that automatically collects, scores, and r
 ## ✨ Features
 
 ### Core Features
-- ✅ **Live Opportunity Collection** - Fetches freelance gigs from RemoteOK and other sources
-- ✅ **AI-Powered Scoring Engine** - Ranks projects based on 17+ skill weights and difficulty factors
+- ✅ **Live Opportunity Collection** - Fetches freelance gigs from RemoteOK, Remotive, WeWorkRemotely, and mock sources
+- ✅ **AI-Powered Scoring Engine** - Ranks projects based on 15 skill weights and difficulty factors
 - ✅ **Smart Filtering** 
   - Only recommends tech/development roles to developers
   - Filters for free-to-apply opportunities
@@ -120,7 +120,7 @@ An intelligent AI-powered application that automatically collects, scores, and r
 
 ### Prerequisites
 - Python 3.11 or higher
-- pip
+- [uv](https://github.com/astral-sh/uv) dependency manager
 
 ### Clone & Setup
 
@@ -128,16 +128,8 @@ An intelligent AI-powered application that automatically collects, scores, and r
 git clone https://github.com/jorige3/freelance-project-finder-agent.git
 cd freelance-project-finder-agent
 
-python3 -m venv .venv
-source .venv/bin/activate
-
-pip install -e .
-```
-
-### Development Dependencies
-
-```bash
-pip install -e ".[dev]"
+# Sync dependencies and set up virtual environment
+uv sync
 ```
 
 ---
@@ -238,6 +230,8 @@ freelance-project-finder-agent/
 │   │   ├── base.py                # Base collector interface
 │   │   ├── manager.py             # Manages multiple collectors
 │   │   ├── remoteok.py            # RemoteOK.com scraper
+│   │   ├── remotive.py            # Remotive.com API client
+│   │   ├── weworkremotely.py      # WeWorkRemotely RSS scraper
 │   │   └── mock_collector.py      # Sample data provider
 │   ├── database/
 │   │   ├── __init__.py

@@ -1,4 +1,5 @@
 import feedparser
+import httpx
 
 from app.collectors.base import BaseCollector, CollectedProject
 from app.collectors.opportunity_type import detect_opportunity_type
@@ -8,8 +9,16 @@ class WeWorkRemotelyCollector(BaseCollector):
     name = "WeWorkRemotely"
     feed_url = "https://weworkremotely.com/categories/remote-programming-jobs.rss"
 
-    def collect(self) -> list[CollectedProject]:
-        feed = feedparser.parse(self.feed_url)
+    async def collect(self) -> list[CollectedProject]:
+        headers = {
+            "User-Agent": "freelance-project-finder-agent/0.1"
+        }
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(self.feed_url, headers=headers, timeout=30.0)
+        response.raise_for_status()
+
+        feed = feedparser.parse(response.content)
 
         projects: list[CollectedProject] = []
 

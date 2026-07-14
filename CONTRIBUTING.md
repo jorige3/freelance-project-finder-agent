@@ -186,7 +186,6 @@ def calculate_score(project: CollectedProject) -> int:
 - [ ] Interview prep recommendations
 - [ ] Salary insights and benchmarks
 - [ ] Community project showcase
-- [ ] Docker containerization
 
 ---
 
