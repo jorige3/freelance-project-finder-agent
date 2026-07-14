@@ -1,5 +1,7 @@
 # 🚀 Freelance Project Finder AI Agent
 
+[![CI](https://github.com/jorige3/freelance-project-finder-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/jorige3/freelance-project-finder-agent/actions/workflows/ci.yml) [![Bandit](https://img.shields.io/badge/security-bandit-yellow)](https://github.com/jorige3/freelance-project-finder-agent/actions/workflows/ci.yml) [![PyPI version](https://img.shields.io/pypi/v/freelance-project-finder-agent?label=version)](https://pypi.org/project/freelance-project-finder-agent)
+
 An intelligent AI-powered application that automatically collects, scores, and recommends **quality freelance and remote opportunities** with a focus on **free-to-apply developer gigs**. Built with smart filtering, explainable AI scoring, and actionable proposals.
 
 **Version:** 0.2.0  
