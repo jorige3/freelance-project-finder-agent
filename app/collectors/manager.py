@@ -19,52 +19,69 @@ class CollectorManager:
             WeWorkRemotelyCollector(),
         ]
 
-    def collect_all(self, db: Session) -> dict:
-        total_found = 0
+    async def collect_all(self, db: Session) -> dict:
+        import asyncio
         inserted = 0
         duplicates = 0
         filtered_out = 0
         errors: list[str] = []
 
-        for collector in self.collectors:
-            try:
-                projects = collector.collect()
-            except Exception as exc:
-                errors.append(f"{collector.name}: {exc}")
+        # Fetch all collectors concurrently
+        tasks = [collector.collect() for collector in self.collectors]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        all_collected_projects = []
+        for collector, result in zip(self.collectors, results):
+            if isinstance(result, Exception):
+                errors.append(f"{collector.name}: {result}")
+            else:
+                all_collected_projects.extend(result)
+
+        total_found = len(all_collected_projects)
+
+        # Filter out excluded titles first
+        valid_projects = []
+        for project in all_collected_projects:
+            if is_excluded(project):
+                filtered_out += 1
+            else:
+                valid_projects.append(project)
+
+        # Batch query existing URLs to prevent N+1 query problem
+        if valid_projects:
+            urls = {p.url for p in valid_projects if p.url}
+            existing_urls = {
+                row[0]
+                for row in db.query(FreelanceProject.url)
+                .filter(FreelanceProject.url.in_(list(urls)))
+                .all()
+            }
+        else:
+            existing_urls = set()
+
+        # Insert new projects
+        for project in valid_projects:
+            if project.url in existing_urls:
+                duplicates += 1
                 continue
 
-            total_found += len(projects)
+            existing_urls.add(project.url)
 
-            for project in projects:
-                if is_excluded(project):
-                    filtered_out += 1
-                    continue
-
-                existing = (
-                    db.query(FreelanceProject)
-                    .filter(FreelanceProject.url == project.url)
-                    .first()
-                )
-
-                if existing:
-                    duplicates += 1
-                    continue
-
-                db_project = FreelanceProject(
-                    title=project.title,
-                    platform=project.platform,
-                    url=project.url,
-                    description=project.description,
-                    budget=project.budget,
-                    skills=project.skills,
-                    difficulty=project.difficulty,
-                    score=score_project(project),
-                    is_free_to_apply=project.is_free_to_apply,
-                    apply_cost=project.apply_cost,
-                    opportunity_type=project.opportunity_type,
-                )
-                db.add(db_project)
-                inserted += 1
+            db_project = FreelanceProject(
+                title=project.title,
+                platform=project.platform,
+                url=project.url,
+                description=project.description,
+                budget=project.budget,
+                skills=project.skills,
+                difficulty=project.difficulty,
+                score=score_project(project),
+                is_free_to_apply=project.is_free_to_apply,
+                apply_cost=project.apply_cost,
+                opportunity_type=project.opportunity_type,
+            )
+            db.add(db_project)
+            inserted += 1
 
         db.commit()
 

@@ -1,5 +1,6 @@
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
+from contextlib import asynccontextmanager
 
 from app.collectors.manager import CollectorManager
 from app.database.models import FreelanceProject
@@ -13,15 +14,18 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-coordinator = CoordinatorAgent()
 
-Base.metadata.create_all(bind=engine)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    Base.metadata.create_all(bind=engine)
+    yield
 
 
 app = FastAPI(
     title="Freelance Project Finder AI Agent",
     version="0.8.0",
     description="AI agent to collect, rank, and recommend freelance projects.",
+    lifespan=lifespan,
 )
 
 
@@ -105,9 +109,9 @@ def list_projects(db: Session = Depends(get_db)):
 
 
 @app.post("/collect")
-def collect_projects(db: Session = Depends(get_db)):
+async def collect_projects(db: Session = Depends(get_db)):
     manager = CollectorManager()
-    return manager.collect_all(db)
+    return await manager.collect_all(db)
 
 
 @app.get("/projects/{project_id}/score")
@@ -145,20 +149,36 @@ def get_proposal(project_id: int, db: Session = Depends(get_db)):
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
+    # Load needed attributes into memory, expunge, and close db session
+    _ = (project.title, project.description, project.skills, project.budget)
+    db.expunge(project)
+    db.close()
+
+    # Generate proposal without holding database session open
     proposal_text = generate_proposal(project)
 
-    project.proposal_text = proposal_text
-    project.proposal_status = "generated"
-    project.proposal_generated_at = datetime.utcnow()
-    db.commit()
-    db.refresh(project)
+    # Save to database in a short, separate transaction
+    new_db = SessionLocal()
+    try:
+        db_project = (
+            new_db.query(FreelanceProject)
+            .filter(FreelanceProject.id == project_id)
+            .first()
+        )
+        if db_project:
+            db_project.proposal_text = proposal_text
+            db_project.proposal_status = "generated"
+            db_project.proposal_generated_at = datetime.utcnow()
+            new_db.commit()
+    finally:
+        new_db.close()
 
     return {
         "id": project.id,
         "title": project.title,
         "platform": project.platform,
         "proposal": proposal_text,
-        "proposal_status": project.proposal_status,
+        "proposal_status": "generated",
     }
 
 

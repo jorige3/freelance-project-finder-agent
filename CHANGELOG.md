@@ -142,111 +142,66 @@ Initial development version with basic functionality.
 
 ## Unreleased (Development)
 
-### Planned for v1.1.0
-- [ ] Email digest delivery system
-  - Daily/weekly summary of top opportunities
-  - Personalized based on user preferences
-  - Unsubscribe/preference management
+### Planned for v0.9.0
+- [ ] Asynchronous opportunity collection
+  - Refactor scrapers to use `httpx.AsyncClient`
+  - Introduce timeout limits on feeds and HTTP parser connections
+  - Deduplication batch optimization (eliminate N+1 queries)
+- [ ] Database session safety & SQLite WAL mode
+  - Defer session holds during external calls (Ollama API)
+  - Configure connection pool & WAL mode
+  - Unique constraint/index on `url`
+- [ ] Test coverage expansion
+  - API endpoint integration tests
+  - Mock collector tests and LLM fallback tests
 
-- [ ] User authentication
-  - User accounts with email/password
-  - Saved preferences and filters
-  - Personal opportunity history
-  - Application tracking
+### Planned for v1.0.0
+- [ ] User authentication and API access controls
+- [ ] Email digest notification delivery
+- [ ] Advanced UI filter configurations
 
-- [ ] Advanced filtering UI
-  - Budget range filters
-  - Difficulty level selection
-  - Custom skill filters
-  - Platform selection
+---
 
-- [ ] Performance improvements
-  - Result caching (top-gigs cached 1 hour)
-  - Async collector support
-  - Database connection pooling
-  - Query optimization
+## [0.2.0] to [0.7.0] - Various Dates (2026)
 
-- [ ] Expanded documentation
-  - Video tutorials
-  - Example scripts
-  - Common issues FAQ
-  - Architecture diagrams
-
-### Planned for v1.2.0
-- [ ] Additional job board integrations
-  - Upwork.com integration
-  - Freelancer.com integration
-  - Toptal.com integration
-  - LinkedIn Jobs integration
-
-- [ ] Machine learning improvements
-  - User feedback collection
-  - ML model retraining pipeline
-  - Personalized scoring weights
-  - Anomaly detection
-
-- [ ] Dashboard improvements
-  - Project comparison view
-  - Salary insights
-  - Success rate metrics
-  - Portfolio recommendations
-
-### Planned for v2.0.0
-- [ ] Full rewrite with microservices
-- [ ] GraphQL API
-- [ ] Real-time updates via WebSocket
-- [ ] Community features (freelancer forum, project reviews)
-- [ ] Native mobile app
+- Development iterations addressing keyword scoring boundary matching, tech/non-tech detection classifiers, Streamlit dashboard interface updates, and core agent orchestration pipelines.
 
 ---
 
 ## Migration Guides
 
-### From Pre-release to v1.0.0
+### From Pre-release to v0.8.0
 
-**Breaking Changes**: None - this is the first release
+**Breaking Changes**: None - this is the first major release.
 
 **Database Migration**: 
-- No migration needed (new database schema)
-- If upgrading from alpha, back up your `data/` directory
+- No migration needed (new database schema).
+- If upgrading from alpha, back up your `data/` directory.
 
 **API Changes**:
-- All endpoints remain stable
-- New filtering logic may return different results (fewer non-tech jobs)
+- Endpoints remain stable.
+- Scoring logic and tech filtering updates might reduce low-relevance recommendations compared to the alpha version.
 
 ---
 
-## Performance Notes
+## Performance Notes (v0.8.0)
 
-### v1.0.0 Performance
+> [!NOTE]
+> Performance metrics are estimates based on a typical local development environment (WSL2/Ubuntu).
+
 - Startup time: ~1-2 seconds
-- API response time: 
+- Estimated API response time: 
   - `/health`: <10ms
-  - `/agents/top-free-gigs`: 50-200ms (varies by dataset size)
-  - `/collect`: 5-30 seconds (depends on scraper speed)
+  - `/agents/top-free-gigs`: 50-200ms (dependent on local database size)
+  - `/collect`: 5-30 seconds (dependent on network speeds and external rate limiting)
 - Database size: ~1MB per 1000 projects
-- Memory usage: ~100MB typical
-
-### Benchmarks
-```
-GET /agents/top-free-gigs (1000 projects):
-  Average: 85ms
-  P99: 250ms
-  
-POST /collect (RemoteOK scrape):
-  Average: 12 seconds
-  Success rate: 95%+
-  
-SQLite query performance:
-  Simple filters: <5ms
-  Complex filters: 50-100ms
-```
+- Memory footprint: ~100MB typical
 
 ---
 
 ## Deprecation Notices
 
-None yet - this is the first release.
+None.
 
 ---
 

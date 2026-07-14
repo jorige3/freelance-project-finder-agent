@@ -10,7 +10,7 @@ class FreelanceProject(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), nullable=False)
     platform = Column(String(100), nullable=False)
-    url = Column(Text, nullable=True)
+    url = Column(String(512), unique=True, index=True, nullable=True)
     description = Column(Text, nullable=True)
     budget = Column(String(100), nullable=True)
     skills = Column(Text, nullable=True)

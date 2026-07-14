@@ -6,6 +6,6 @@ from app.collectors.manager import CollectorManager
 class CollectorAgent:
     name = "CollectorAgent"
 
-    def run(self, db: Session) -> dict:
+    async def run(self, db: Session) -> dict:
         manager = CollectorManager()
-        return manager.collect_all(db)
+        return await manager.collect_all(db)

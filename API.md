@@ -24,7 +24,7 @@ Response:
 {
   "status": "running",
   "project": "Freelance Project Finder AI Agent",
-  "version": "0.2.0"
+  "version": "0.8.0"
 }
 ```
 
@@ -363,6 +363,12 @@ getTopGigs(3).then(projects => {
 ---
 
 ## Changelog
+
+### v0.8.0
+- Added MIT license and environment variable configurations.
+- Implemented root CLI launcher and Docker Compose capabilities.
+- Restored standard CI GitHub actions using setup-uv.
+- Centralized DTO mapper.
 
 ### v0.2.0
 - Added intelligent job-type filtering

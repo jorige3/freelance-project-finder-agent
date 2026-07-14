@@ -8,12 +8,13 @@ class RemoteOKCollector(BaseCollector):
     name = "RemoteOK"
     api_url = "https://remoteok.com/api"
 
-    def collect(self) -> list[CollectedProject]:
+    async def collect(self) -> list[CollectedProject]:
         headers = {
             "User-Agent": "freelance-project-finder-agent/0.1"
         }
 
-        response = httpx.get(self.api_url, headers=headers, timeout=30.0)
+        async with httpx.AsyncClient() as client:
+            response = await client.get(self.api_url, headers=headers, timeout=30.0)
         response.raise_for_status()
 
         data = response.json()
